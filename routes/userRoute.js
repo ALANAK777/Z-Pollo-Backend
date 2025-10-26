@@ -29,7 +29,20 @@ userRouter.get(
 
 userRouter.get(
   "/auth/google/callback",
-  passport.authenticate("google", { session: false }),
+  (req, res, next) => {
+    passport.authenticate("google", { session: false }, (err, user, info) => {
+      if (err) {
+        console.error("❌ Passport authenticate error:", err);
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleAuthError`);
+      }
+      if (!user) {
+        console.error("❌ No user returned from Google OAuth");
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=NoUserFound`);
+      }
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   googleLoginSuccess
 );
 
