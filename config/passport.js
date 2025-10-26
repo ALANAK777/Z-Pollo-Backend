@@ -14,6 +14,23 @@ passport.use(
         let user = await userModel.findOne({ googleId: profile.id });
 
         if (!user) {
+          // Check if user with same email exists
+          const existingUser = await userModel.findOne({ email: profile.emails[0].value });
+          
+          if (existingUser) {
+            // Link Google account to existing user
+            existingUser.googleId = profile.id;
+            existingUser.provider = "google";
+            existingUser.googleAccessToken = accessToken;
+            existingUser.googleRefreshToken = refreshToken;
+            if (!existingUser.image || existingUser.image.startsWith('data:image')) {
+              existingUser.image = profile.photos[0].value;
+            }
+            await existingUser.save();
+            return done(null, existingUser);
+          }
+
+          // Create new user
           user = await userModel.create({
             googleId: profile.id,
             provider: "google",
@@ -22,6 +39,7 @@ passport.use(
             image: profile.photos[0].value,
             googleAccessToken: accessToken,
             googleRefreshToken: refreshToken,
+            password: undefined, // No password for Google users
           });
         } else {
           // Update tokens if user exists
@@ -32,7 +50,7 @@ passport.use(
 
         return done(null, user);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Google OAuth Error:", err);
         done(err, null);
       }
     }

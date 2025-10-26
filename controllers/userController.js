@@ -409,6 +409,11 @@ const getNotifications = async (req, res) => {
 // ------------------ Google OAuth ------------------ //
 const googleLoginSuccess = async (req, res) => {
   try {
+    if (!req.user) {
+      console.error("❌ No user in req.user after Google OAuth");
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=AuthenticationFailed`);
+    }
+
     const user = req.user; // Passport already sets req.user to the DB user
 
     // Generate JWT token
@@ -418,7 +423,7 @@ const googleLoginSuccess = async (req, res) => {
     const redirectUrl = `${process.env.FRONTEND_URL}/auth-success?token=${token}`;
     res.redirect(redirectUrl);
   } catch (error) {
-    console.log(error);
+    console.error("❌ Google Login Success Error:", error);
     res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleLoginFailed`);
   }
 };
