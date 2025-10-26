@@ -409,22 +409,30 @@ const getNotifications = async (req, res) => {
 // ------------------ Google OAuth ------------------ //
 const googleLoginSuccess = async (req, res) => {
   try {
+    console.log("🔵 Step 4: googleLoginSuccess handler called");
+    
     if (!req.user) {
       console.error("❌ No user in req.user after Google OAuth");
       return res.redirect(`${process.env.FRONTEND_URL}/login?error=AuthenticationFailed`);
     }
 
-    const user = req.user; // Passport already sets req.user to the DB user
+    const user = req.user;
+    console.log("User object:", { id: user._id, email: user.email, name: user.name });
 
     // Generate JWT token
+    console.log("Generating JWT token...");
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    console.log("✅ JWT token generated successfully");
 
     // Redirect to frontend with token
     const redirectUrl = `${process.env.FRONTEND_URL}/auth-success?token=${token}`;
+    console.log("🔵 Step 5: Redirecting to:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
     console.error("❌ Google Login Success Error:", error);
-    res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleLoginFailed`);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleLoginFailed&msg=${encodeURIComponent(error.message)}`);
   }
 };
 

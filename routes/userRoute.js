@@ -24,21 +24,39 @@ const userRouter = express.Router();
 // 🟡 Google OAuth Routes
 userRouter.get(
   "/auth/google",
+  (req, res, next) => {
+    console.log("🔵 Step 1: Initiating Google OAuth");
+    console.log("Backend URL:", process.env.BACKEND_URL);
+    console.log("Frontend URL:", process.env.FRONTEND_URL);
+    console.log("Client ID:", process.env.GOOGLE_CLIENT_ID ? "✅ Set" : "❌ Missing");
+    console.log("Client Secret:", process.env.GOOGLE_CLIENT_SECRET ? "✅ Set" : "❌ Missing");
+    next();
+  },
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
 userRouter.get(
   "/auth/google/callback",
   (req, res, next) => {
+    console.log("🔵 Step 2: Google OAuth callback received");
+    console.log("Query params:", req.query);
+    console.log("Callback URL configured:", `${process.env.BACKEND_URL}/api/user/auth/google/callback`);
+    
     passport.authenticate("google", { session: false }, (err, user, info) => {
       if (err) {
-        console.error("❌ Passport authenticate error:", err);
-        return res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleAuthError`);
+        console.error("❌ Step 3: Passport authenticate error:", err);
+        console.error("Error message:", err.message);
+        console.error("Error stack:", err.stack);
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=GoogleAuthError&msg=${encodeURIComponent(err.message)}`);
       }
       if (!user) {
-        console.error("❌ No user returned from Google OAuth");
+        console.error("❌ Step 3: No user returned from Google OAuth");
+        console.error("Info:", info);
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=NoUserFound`);
       }
+      console.log("✅ Step 3: User authenticated successfully");
+      console.log("User ID:", user._id);
+      console.log("User email:", user.email);
       req.user = user;
       next();
     })(req, res, next);
