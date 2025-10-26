@@ -27,10 +27,8 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://zpollo-hu3q.vercel.app",
-  "https://zpollo-admin.vercel.app",
-  "https://zpollo.vercel.app",
-  "https://zpollo-xtxm.vercel.app" // ✅ current frontend
+  "https://z-pollo-frontend.vercel.app",
+  "https://z-pollo-admin.vercel.app"
 ];
 
 app.use(
